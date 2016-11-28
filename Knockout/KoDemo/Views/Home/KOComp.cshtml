@@ -1,0 +1,96 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+
+    <meta name="viewport" content="width=device-width" />
+    <title>KOComp</title>
+    <link href="~/Content/themes/base/all.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.10.2.js"></script>
+    <script src="~/Scripts/knockout-3.4.0.js"></script>
+    <script src="~/Scripts/jquery-ui-1.11.4.js"></script>
+    <script src="~/Scripts/knockout-postbox.js"></script>
+    <script src="~/Scripts/require.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.js"></script>
+    <link href="~/Content/Site.css" rel="stylesheet" />
+
+</head>
+<body>
+
+    <div class="row">
+        <div class="col-md-3">
+            <design-comp params="Name: 'Component A', ValueTopic : 'A-Val', NumberTopic:'A-Number'"></design-comp><br />
+            <design-comp params="Name: 'Component B', ValueTopic : 'B-Val', NumberTopic:'B-Number'"></design-comp>
+        </div>
+        <div class="col-md-3">
+
+            <div data-bind="foreach: ComponentsA.Components" class="a">
+                <sample-comp params="Name: componentName, ValueTopic : 'A-Val'"></sample-comp>
+            </div>
+
+
+            <div data-bind="foreach: ComponentsB.Components" class="b">
+                <sample-comp params="Name: componentName, ValueTopic : 'B-Val'"></sample-comp>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        ko.components.register('design-comp', {
+            viewModel: function (params) {
+                this.Name = params.Name;
+                this.Value = ko.observable().publishOn(params.ValueTopic);
+                this.Number = ko.observable().publishOn(params.NumberTopic);
+            },
+            template: { require: '../Scripts//require.text!/Template/DesignComp/' }
+        });
+
+        ko.components.register('sample-comp', {
+            viewModel: function (params) {
+                this.Name = params.Name;
+                this.Value = ko.observable().subscribeTo(params.ValueTopic);
+            },
+            template: { require: '../Scripts//require.text!/Template/TestCompTemp/' }
+        });
+
+        function Component(name) {
+            this.value = ko.observable();
+            this.componentName = ko.observable(name);
+        }
+
+        function ComponentsModel(NumberTopic, compName) {
+            this.Components = ko.observableArray();
+            var self = this;
+            this.cANumber = ko.observable().subscribeTo(NumberTopic, true, function (newval) {
+                var existing = self.Components().length;
+                var current = newval;
+                if (current > existing)
+                    for (i = 0; i < current - existing ; i++) {
+                        var name = compName;
+                        self.Components.push(new Component(name));
+                    }
+                else
+                    for (i = 0; i < existing - current  ; i++) {
+                        self.Components.pop();
+                    }
+                return newval;
+            });
+        }
+        function MyViewModel() {
+            this.ComponentsA = new ComponentsModel("A-Number", "Component A");
+            this.ComponentsB = new ComponentsModel("B-Number", "Component B");
+        }
+        ko.applyBindings(new MyViewModel());
+
+        $(function () {
+            $(".form-group").draggable();
+        });
+    </script>
+</body>
+</html>

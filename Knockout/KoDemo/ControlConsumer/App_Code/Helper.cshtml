@@ -1,0 +1,26 @@
+﻿@using System.Web.Mvc
+@using ControlConsumer.App_Code
+
+@functions
+{
+    private static new HtmlHelper<object> Html
+    {
+        get { return ((WebViewPage)CurrentPage).Html; }
+    }
+
+    private static UrlHelper Url
+    {
+        get { return ((WebViewPage)CurrentPage).Url; }
+    }
+
+}
+
+
+
+@helper GetTemplet()
+{
+
+
+   @Helper.Html.Raw(@WebHelper.getHtml())
+
+}
